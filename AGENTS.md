@@ -17,12 +17,12 @@ This guide documents the architecture, silent-sharing safety invariants, Agent-A
   - `output.go`: Deterministic JSON encoder and alignment-safe semantic table renderer.
   - `errors.go`: `CLIError` wrapper and proactive remediation hints.
   - `help.go`: Thread-safe (`sync.Once`) semantic color usage template.
-- **`internal/docurl/`**: Extracts Drive file IDs from Google Docs, Sheets, Slides, Forms, Drawings, Drive file/folder URLs, and raw IDs; rejects published `/d/e/2PACX-...` web links; normalizes and deduplicates recipient emails.
+- **`internal/docurl/`**: Extracts Drive file IDs and optional `?resourcekey=...` tokens from Google Docs, Sheets, Slides, Forms, Drawings, Colab notebooks (`colab.research.google.com`), Drive file/folder URLs, and raw IDs; rejects published `/d/e/2PACX-...` web links; normalizes and deduplicates recipient emails and domainless corporate shorthands (`@user`, `user@`, `user` -> `@google.com` by default).
 - **`internal/config/`**: XDG Base Directory configuration loader (`$XDG_CONFIG_HOME/share-with/config.yaml`) enforcing `Flag > Environment > Config File > Default` priority.
 - **`internal/sharer/`**:
   - `transport.go`: `SilentGuardTransport` (`http.RoundTripper`) blocking any permission creation request unless `sendNotificationEmail=false` is set on the wire.
-  - `auth.go`: Headless-first credential resolution (`SHARE_WITH_ACCESS_TOKEN`, service account JSON, authorized user JSON, cached desktop OAuth token, and ADC).
-  - `sharer.go`: Role translation (`editor` -> Drive v3 `writer`) and batch permission grants with Shared Drive support (`supportsAllDrives=true`).
+  - `auth.go`: Headless-first credential resolution (`SHARE_WITH_ACCESS_TOKEN`, service account JSON, authorized user JSON, cached desktop OAuth token, and ADC with automatic `quota_project_id` JSON extraction and active `gcloud` configuration project fallback).
+  - `sharer.go`: Role translation (`editor` -> Drive v3 `writer`), pre-grant no-downgrade guard (`already_shared` when a recipient holds an equal or higher role), `X-Goog-Drive-Resource-Keys` propagation, and batch permission grants with Shared Drive support (`supportsAllDrives=true`).
 - **`internal/style/`**: Semantic Lipgloss palette (`Accent`, `Command`, `Pass`, `Warn`, `Fail`, `Muted`, `ID`) with automatic degradation for `NO_COLOR`, `SHARE_WITH_NO_TUI`, `--json`, and non-TTY pipes.
 
 ---
@@ -68,6 +68,16 @@ make lint
 ## 5. Editorial Standards
 
 Documentation in `README.md` and `docs/` follows strict house style:
+- **README Quality Gate**: Audit `README.md` edits against [`make-readme`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/repo-authoring/skills/make-readme/SKILL.md) from [`ghchinoy/agent-skills`](https://github.com/ghchinoy/agent-skills) (Mark Allen 8-dimension rubric) and maintain a score of **34/40 or higher (Excellent band)**.
+- **Portable Skill References**: Reference external agent skills and plugins by their canonical source repository URL (such as `https://github.com/ghchinoy/agent-skills`) rather than machine-local filesystem paths.
 - Zero em dashes in prose; use commas, colons, or parentheses.
 - Active voice with concrete actors.
 - Copy-pasteable commands with language-hinted fenced code blocks.
+
+---
+
+## 6. Issue Tracking & Repository Hygiene
+
+- **Beads (`bd`) Parity**: After creating or updating issues in `bd`, run `bd export -o .beads/issues.jsonl` so Git-tracked JSONL matches `.beads/dolt`. If `.beads/dolt` reports Dolt lock contention, isolate and stop only the `dolt sql-server` PID bound to this repository's `.beads/` directory rather than killing servers belonging to other projects.
+- **Root-Anchored Binary Ignore**: Keep `/share-with` root-anchored in `.gitignore` so `skills/share-with/SKILL.md` remains tracked by Git.
+- **Google Docs Hyperlink Extraction**: Plain-text exports of Google Docs strip table-cell hyperlinks and smart chips; use Drive API `Files.Export` with `text/html` when implementing `links` and `audit` commands (`share-with-96s`, `share-with-aqc`).
