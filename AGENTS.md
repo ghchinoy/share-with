@@ -1,0 +1,73 @@
+# AGENTS.md: share-with Developer & Agent Guide
+
+This guide documents the architecture, silent-sharing safety invariants, Agent-Aware CLI conventions, and verification workflows for contributors and AI agents working on `share-with`.
+
+---
+
+## 1. Architecture Overview
+
+`share-with` grants Google Docs and Google Drive permissions (`reader`, `commenter`, or `editor`) to email recipients without ever sending notification emails:
+
+- **`main.go`**: Entrypoint invoking `cmd.Execute()`.
+- **`cmd/`**: Cobra command routing and dual-mode presentation.
+  - `root.go`: Root command supporting direct `share-with <doc-url> <email...>` invocation, persistent flags (`--json`, `--credentials`, `--token-file`, `--quota-project`, `--impersonate`, `--timeout`), and command groups.
+  - `grant.go`: Explicit `grant` (`share`) subcommand sharing flags and execution flow with root.
+  - `list.go`: Scoped `list` subcommand (`--limit 25`, `--role`) for verifying existing file permissions.
+  - `auth.go`: Headless `auth status` inspection and interactive `auth login` loopback helper.
+  - `output.go`: Deterministic JSON encoder and alignment-safe semantic table renderer.
+  - `errors.go`: `CLIError` wrapper and proactive remediation hints.
+  - `help.go`: Thread-safe (`sync.Once`) semantic color usage template.
+- **`internal/docurl/`**: Extracts Drive file IDs from Google Docs, Sheets, Slides, Forms, Drawings, Drive file/folder URLs, and raw IDs; rejects published `/d/e/2PACX-...` web links; normalizes and deduplicates recipient emails.
+- **`internal/config/`**: XDG Base Directory configuration loader (`$XDG_CONFIG_HOME/share-with/config.yaml`) enforcing `Flag > Environment > Config File > Default` priority.
+- **`internal/sharer/`**:
+  - `transport.go`: `SilentGuardTransport` (`http.RoundTripper`) blocking any permission creation request unless `sendNotificationEmail=false` is set on the wire.
+  - `auth.go`: Headless-first credential resolution (`SHARE_WITH_ACCESS_TOKEN`, service account JSON, authorized user JSON, cached desktop OAuth token, and ADC).
+  - `sharer.go`: Role translation (`editor` -> Drive v3 `writer`) and batch permission grants with Shared Drive support (`supportsAllDrives=true`).
+- **`internal/style/`**: Semantic Lipgloss palette (`Accent`, `Command`, `Pass`, `Warn`, `Fail`, `Muted`, `ID`) with automatic degradation for `NO_COLOR`, `SHARE_WITH_NO_TUI`, `--json`, and non-TTY pipes.
+
+---
+
+## 2. Silent-Sharing Safety Contract
+
+Google Drive API v3 defaults `sendNotificationEmail` to `true` when omitted on `user` and `group` permissions. `share-with` enforces silence at three layers:
+
+1. **CLI Surface**: No `--notify`, `--send-notification-email`, or `--message` flags exist. Ownership transfer roles (`owner`, `organizer`) are rejected because Google Drive forces notifications for ownership changes.
+2. **API Call Site**: `Client.Share` unconditionally calls `.SendNotificationEmail(false)` and `.SupportsAllDrives(true)` on every `Permissions.Create` request.
+3. **HTTP Wire Guard**: `SilentGuardTransport.RoundTrip` inspects every `POST .../permissions` request and aborts the call before transmission if `sendNotificationEmail != "false"`, if `transferOwnership=true`, or if `emailMessage` is present.
+
+If a recipient address is not associated with a Google Account, Google Drive returns HTTP 400 (`invalidSharingRequest`) when `sendNotificationEmail=false`. `share-with` never retries with notifications enabled; instead, it records `status: "failed"` with an explicit hint and exits non-zero.
+
+---
+
+## 3. Agent-Aware CLI Conventions
+
+1. **Logical Grouping**: Every subcommand belongs to a Cobra `GroupID` (`sharing`, `inspection`, `configuration`).
+2. **Tri-Part Documentation**: Populate `Short`, `Long`, and `Example` on every command.
+3. **Structured JSON**: Support `--json` across `grant`, `list`, `auth status`, `auth login`, and error outputs.
+4. **Mutative Safety**: Preserve `--dry-run` on `share-with` and `share-with grant` so agents can verify URL parsing, email deduplication, and Drive role mapping (`editor` -> `writer`) offline.
+5. **Alignment Safety**: Pad plain strings via `style.PadRight` before wrapping text in Lipgloss color styles.
+
+---
+
+## 4. Build & Verification Commands
+
+```bash
+# Build binary into bin/share-with
+make build
+
+# Run unit and CLI contract tests with race detector
+make test
+
+# Format and vet Go source files
+make fmt
+make lint
+```
+
+---
+
+## 5. Editorial Standards
+
+Documentation in `README.md` and `docs/` follows strict house style:
+- Zero em dashes in prose; use commas, colons, or parentheses.
+- Active voice with concrete actors.
+- Copy-pasteable commands with language-hinted fenced code blocks.

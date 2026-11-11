@@ -1,0 +1,36 @@
+# Binaries and build artifacts
+bin/
+dist/
+share-with
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.txt
+
+# Diagrams (per workspace rules)
+*.png
+*.svg
+
+# Local secrets and credentials
+*.pem
+*.key
+*credentials*.json
+*client_secret*.json
+token.json
+.env
+.env.*
+
+# OS and editor artifacts
+.DS_Store
+.idea/
+.vscode/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
