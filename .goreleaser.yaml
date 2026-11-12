@@ -1,0 +1,48 @@
+version: 2
+
+project_name: share-with
+
+builds:
+  - id: share-with
+    main: .
+    binary: share-with
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/ghchinoy/share-with/cmd.Version={{.Version}}
+      - -X github.com/ghchinoy/share-with/cmd.Commit={{.ShortCommit}}
+      - -X github.com/ghchinoy/share-with/cmd.Date={{.Date}}
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  disable: true
+
+release:
+  mode: keep-existing

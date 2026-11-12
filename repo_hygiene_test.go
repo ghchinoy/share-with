@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/ghchinoy/share-with/cmd"
 )
 
 func TestAgentPluginAndPortableURLHygiene(t *testing.T) {
@@ -52,6 +54,39 @@ func TestAgentPluginAndPortableURLHygiene(t *testing.T) {
 		}
 		if got, _ := manifest["name"].(string); got != "share-with" {
 			t.Errorf("plugin.json name = %q, want %q", got, "share-with")
+		}
+	})
+
+	t.Run("release_manifest_version_sync", func(t *testing.T) {
+		rpBytes, err := os.ReadFile(".release-please-manifest.json")
+		if err != nil {
+			t.Fatalf("reading .release-please-manifest.json: %v", err)
+		}
+		var rp map[string]string
+		if err := json.Unmarshal(rpBytes, &rp); err != nil {
+			t.Fatalf("parsing .release-please-manifest.json: %v", err)
+		}
+		rootVer := rp["."]
+		if rootVer == "" {
+			t.Fatalf(".release-please-manifest.json missing '.' version entry")
+		}
+
+		pluginBytes, err := os.ReadFile(filepath.Join("plugins", "share-with", "plugin.json"))
+		if err != nil {
+			t.Fatalf("reading plugins/share-with/plugin.json: %v", err)
+		}
+		var pluginManifest struct {
+			Version string `json:"version"`
+		}
+		if err := json.Unmarshal(pluginBytes, &pluginManifest); err != nil {
+			t.Fatalf("parsing plugins/share-with/plugin.json: %v", err)
+		}
+
+		if pluginManifest.Version != rootVer {
+			t.Errorf("plugin.json version = %q, want %q (matching .release-please-manifest.json)", pluginManifest.Version, rootVer)
+		}
+		if cmd.Version != rootVer {
+			t.Errorf("cmd.Version = %q, want %q (matching .release-please-manifest.json)", cmd.Version, rootVer)
 		}
 	})
 

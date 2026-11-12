@@ -19,7 +19,7 @@
 
 ## Installation
 
-Install directly with Go 1.26 or newer:
+Download a prebuilt static archive (`darwin`, `linux`, or `windows` for `amd64` and `arm64`, with SHA-256 `checksums.txt`) from [GitHub Releases](https://github.com/ghchinoy/share-with/releases), or install directly with Go 1.26+:
 
 ```bash
 go install github.com/ghchinoy/share-with@latest
@@ -213,12 +213,16 @@ For architectural invariants and AI agent workflows, see [`AGENTS.md`](AGENTS.md
 
 ## Publishing
 
-Tag a semantic version on `main` after `make lint && make test` pass so consumers can install the release via `go install`:
+Releases are automated with [`release-please`](release-please-config.json) and [GoReleaser](.goreleaser.yaml) via [`.github/workflows/release.yml`](.github/workflows/release.yml):
+
+1. Merge Conventional Commits (`feat:`, `fix:`) into `main`. `release-please` opens or updates a Release PR that bumps [`CHANGELOG.md`](CHANGELOG.md), [`.release-please-manifest.json`](.release-please-manifest.json), [`cmd/version.go`](cmd/version.go), and [`plugins/share-with/plugin.json`](plugins/share-with/plugin.json).
+2. Merge the Release PR to publish the `vX.Y.Z` tag and GitHub Release; GoReleaser automatically builds and attaches `darwin`, `linux`, and `windows` (`amd64` and `arm64`) archives plus `checksums.txt`.
+
+To test cross-platform archive builds locally without publishing:
 
 ```bash
-make fmt && make lint && make test
-git tag -a v0.1.0 -m "Release v0.1.0"
-git push origin v0.1.0
+goreleaser check
+make snapshot
 ```
 
 ## Troubleshooting

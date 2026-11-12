@@ -17,6 +17,7 @@ This guide documents the architecture, silent-sharing safety invariants, Agent-A
   - `output.go`: Deterministic JSON encoder and alignment-safe semantic table renderer.
   - `errors.go`: `CLIError` wrapper and proactive remediation hints.
   - `help.go`: Thread-safe (`sync.Once`) semantic color usage template.
+  - `version.go`: Release-synced `Version` (`x-release-please-version`), `Commit`, and `Date` metadata injected via `-ldflags`.
 - **`internal/docurl/`**: Extracts Drive file IDs and optional `?resourcekey=...` tokens from Google Docs, Sheets, Slides, Forms, Drawings, Colab notebooks (`colab.research.google.com`), Drive file/folder URLs, and raw IDs; rejects published `/d/e/2PACX-...` web links; normalizes and deduplicates recipient emails and domainless corporate shorthands (`@user`, `user@`, `user` -> `@google.com` by default).
 - **`internal/config/`**: XDG Base Directory configuration loader (`$XDG_CONFIG_HOME/share-with/config.yaml`) enforcing `Flag > Environment > Config File > Default` priority.
 - **`internal/sharer/`**:
@@ -86,3 +87,18 @@ Documentation in `README.md` and `docs/` follows strict house style:
 - **Beads (`bd`) Parity**: After creating or updating issues in `bd`, run `bd export -o .beads/issues.jsonl` so Git-tracked JSONL matches `.beads/dolt`. If `.beads/dolt` reports Dolt lock contention, follow [`bd-dolt-troubleshooter`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/beads-workflow/skills/bd-dolt-troubleshooter/SKILL.md) to isolate and stop only the `dolt sql-server` PID bound to this repository's `.beads/` directory rather than killing servers belonging to other projects.
 - **Root-Anchored Binary Ignore**: Keep `/share-with` root-anchored in `.gitignore` so `plugins/share-with/` and `plugins/share-with/skills/share-with/SKILL.md` remain tracked by Git.
 - **Google Docs Hyperlink Extraction**: Plain-text exports of Google Docs strip table-cell hyperlinks and smart chips; use Drive API `Files.Export` with `text/html` when implementing `links` and `audit` commands (`share-with-96s`, `share-with-aqc`).
+
+---
+
+## 7. Release Process (`release-please` + GoReleaser)
+
+Cross-platform binary releases and Agent Plugin version bumps are automated via [`.github/workflows/release.yml`](.github/workflows/release.yml), [`release-please-config.json`](release-please-config.json), and [`.goreleaser.yaml`](.goreleaser.yaml):
+
+1. **Conventional Commits on `main`**: Prefix commits with `feat:`, `fix:`, `perf:`, `docs:`, `test:`, `ci:`, or `chore:`. User-facing `feat:` and `fix:` commits trigger or update a `release-please` Pull Request.
+2. **Synchronized Version Files**: The Release PR updates [`.release-please-manifest.json`](.release-please-manifest.json), `CHANGELOG.md`, [`cmd/version.go`](cmd/version.go) (`// x-release-please-version`), and [`plugins/share-with/plugin.json`](plugins/share-with/plugin.json) in lockstep (`repo_hygiene_test.go` verifies these versions never drift).
+3. **Automated Cross-Platform Archives**: Merging the Release PR creates the `vX.Y.Z` GitHub Release and immediately runs the `goreleaser` job (`release.mode: keep-existing`) to attach static (`CGO_ENABLED=0`, `-trimpath`) archives for `darwin`, `linux`, and `windows` (`amd64` and `arm64`) along with `checksums.txt` (SHA-256).
+4. **Local Dry-Run Verification**: Before changing [`.goreleaser.yaml`](.goreleaser.yaml) or release flags, run:
+   ```bash
+   goreleaser check
+   make snapshot
+   ```

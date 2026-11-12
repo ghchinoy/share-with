@@ -94,7 +94,7 @@ func NewRootCmdWithOptions(opts Options) *cobra.Command {
 		opts.ClientFactory = defaultClientFactory
 	}
 	if opts.Version == "" {
-		opts.Version = "0.1.0"
+		opts.Version = BuildVersionString()
 	}
 
 	app := &appState{

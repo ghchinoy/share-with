@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "package-name": "share-with",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "generic",
+          "path": "cmd/version.go"
+        },
+        {
+          "type": "json",
+          "path": "plugins/share-with/plugin.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}

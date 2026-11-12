@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Test, Lint & Validate Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Check gofmt formatting
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted Go files:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Validate Agent Plugin & portable URL hygiene
+        run: ./scripts/validate-plugin.sh
+
+      - name: Run go vet
+        run: go vet ./...
+
+      - name: Run unit & contract tests with race detector
+        run: go test -p 2 -v -race ./...
+
+      - name: Validate GoReleaser configuration
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: check
