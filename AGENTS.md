@@ -63,10 +63,18 @@ make build
 # Run unit, CLI contract, and plugin/hygiene tests with race detector
 make test
 
-# Format, vet Go source files, and validate Agent Plugin & portable URL hygiene
+# Format, vet, lint (golangci-lint v2), and validate Agent Plugin & portable URL hygiene
 make fmt
 make lint
 make validate
+
+# Apply or verify Apache-2.0 'Copyright 2026 Google LLC' headers via addlicense
+make license
+make license-check
+
+# Verify zero Go stdlib/module CVEs and zero npm vulnerabilities
+go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+cd site && npm audit
 
 # Typecheck and build the Astro + Starlight site (ASTRO_TELEMETRY_DISABLED=1)
 make site-build
@@ -77,8 +85,8 @@ make site-build
 ## 5. Editorial Standards
 
 Documentation in `README.md`, `site/`, and `plugins/` follows strict house style:
-- **README Quality Gate**: Audit `README.md` edits against [`make-readme`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/repo-authoring/skills/make-readme/SKILL.md) from [`ghchinoy/agent-skills`](https://github.com/ghchinoy/agent-skills) (Mark Allen 8-dimension rubric) and maintain a score of **34/40 or higher (Excellent band)**.
-- **Plugin Conformance**: Keep `plugins/share-with/` and `.claude-plugin/marketplace.json` conformant with [`skills-to-plugins`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/agent-plugin-authoring/skills/skills-to-plugins/SKILL.md) (`make validate` and `go test ./...` enforce 0 errors).
+- **README Quality Gate**: Audit `README.md` edits against [`make-readme`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/repo-authoring/skills/make-readme/SKILL.md) from [`ghchinoy/agent-skills`](https://github.com/ghchinoy/agent-skills) (Mark Allen 8-dimension rubric), maintain a score of **34/40 or higher (Excellent band)**, and preserve the `## Disclaimer` `[!CAUTION]` callout above `## License`.
+- **Plugin & Skill Assessment Conformance**: Keep `plugins/share-with/` and `.claude-plugin/marketplace.json` conformant with [`skills-to-plugins`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/agent-plugin-authoring/skills/skills-to-plugins/SKILL.md) and evaluate skill/validator updates with `skill-assessment` (`skill-readiness-audit` and `skill-ablation-benchmark`, never `SkillForge` or `sss-1` heading boilerplate). Any validator script (`validate*`, `audit*`, `check*`, `lint*`, `verify*`, `assess*`) must support `--json` (`VAL-JSON`), `--help` (`VAL-HELP`), and non-zero exit codes on failure (`VAL-EXIT`).
 - **Portable Skill References**: Reference external agent skills and plugins by their canonical source repository URL (such as `https://github.com/ghchinoy/agent-skills`) rather than machine-local filesystem paths.
 - **Synthetic-Only Examples & Test Fixtures**: Never commit real corporate handles, internal group aliases, or live Google Doc/Colab file IDs or `resourcekey` tokens into `README.md`, `site/`, `plugins/`, Cobra `Example` strings, GoDoc comments, or `*_test.go` fixtures. Always use synthetic placeholders (`@alice`, `bob@`, `doc-reviewers@`, `team-leads@google.com`, `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms`, `0-aBcDeFgHiJkLmNoPqRsTuVw`).
 - **Docs & Skill Parity**: Whenever a CLI subcommand, flag, or JSON field is added or updated, update `README.md`, [`plugins/share-with/skills/share-with/SKILL.md`](plugins/share-with/skills/share-with/SKILL.md), and `site/src/content/docs/{cli-reference,agent-plugin}/index.md` in the same change.
@@ -92,6 +100,8 @@ Documentation in `README.md`, `site/`, and `plugins/` follows strict house style
 
 - **Beads (`bd`) Parity**: After creating or updating issues in `bd`, run `bd export -o .beads/issues.jsonl` so Git-tracked JSONL matches `.beads/dolt`. If `.beads/dolt` reports Dolt lock contention, follow [`bd-dolt-troubleshooter`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/beads-workflow/skills/bd-dolt-troubleshooter/SKILL.md) to isolate and stop only the `dolt sql-server` PID bound to this repository's `.beads/` directory rather than killing servers belonging to other projects.
 - **Root-Anchored Binary & Site SVG Ignore Rules**: Keep `/share-with` root-anchored in `.gitignore` so `plugins/share-with/` and `plugins/share-with/skills/share-with/SKILL.md` remain tracked by Git, and keep `!site/public/**/*.svg` and `!site/src/assets/**/*.svg` negated below `*.svg` so `favicon.svg` and `logo.svg` are tracked for GitHub Pages builds.
+- **Apache-2.0 License Headers (`make license`)**: Every `.go`, `.sh`, `.yml`, and `site/` configuration file must carry the `Copyright 2026 Google LLC` Apache-2.0 header (`addlicense -c "Google LLC" -l apache -y 2026`). `TestAgentPluginAndPortableURLHygiene/go_and_script_apache_headers_present` in `repo_hygiene_test.go` enforces this on every `go test ./...` run.
+- **Static Analysis & Credential Type Allowlisting (`.golangci.yml` v2)**: Keep `golangci-lint run ./...` (`errcheck`, `govet`, `ineffassign`, `staticcheck`, `unused`) at 0 issues, keep `go.mod` pinned to the latest stable Go patch floor (`go 1.26.11`+) so `govulncheck ./...` reports 0 stdlib vulnerabilities, and always load Google JSON credentials via `google.CredentialsFromJSONWithTypeAndParams` with an explicit type allowlist (`ServiceAccount`, `AuthorizedUser`, `ExternalAccount`) rather than deprecated `google.CredentialsFromJSONWithParams` (`SA1019`).
 - **Google Docs Hyperlink Extraction**: Plain-text exports of Google Docs strip table-cell hyperlinks and smart chips; use Drive API `Files.Export` with `text/html` when implementing `links` and `audit` commands (`share-with-96s`, `share-with-aqc`).
 
 ---
@@ -128,3 +138,7 @@ Run `bd ready` to inspect unblocked issues. Key domain invariants for the remain
    - Support multi-target silent grants (`--tier restricted|all`, `--dry-run`, `--json`), skipping `canShare=false` links while preserving `SilentGuardTransport` (`sendNotificationEmail=false`) and the `roleRank` no-downgrade guard (`already_shared`).
 4. **`share-with-iu4` (`--expires` / `--ttl` silent permission expiration)**:
    - Expose mutually exclusive `--expires <RFC3339>` and `--ttl <duration>` flags on root and `grant`, setting Drive v3 `Permission.ExpirationTime` (future timestamp `<= 365` days on `user`/`group` grants) while keeping `sendNotificationEmail=false` and surfacing `expiration_time` in `grant --json` and `list --json`.
+5. **Skill Assessment Follow-Ups (`share-with-91k`, `share-with-mva`, `share-with-259`)**:
+   - **`share-with-91k` (Modality `A0` -> `P1`)**: Bundle a zero-dependency, task-agnostic `V_skill` validator at `plugins/share-with/skills/share-with/scripts/validate_share_with_plan.py` conforming to the 5-part `VALIDATOR_CONTRACT` (`VAL-EXIT`, `VAL-JSON`, `VAL-HELP`, read-only inspection, universal rules) and reference it in `SKILL.md` (`SPEC-ORP` and `SPEC-PTR` clean).
+   - **`share-with-mva` (`SKILL.md` Trigger & Failure Recovery)**: Add an explicit `"Use when..."` trigger clause in `SKILL.md` frontmatter `description`, document negative scope boundaries (ownership transfers, non-Google email invites, published `/d/e/2PACX-...` web links), and include copy-pasteable CLI remediation commands for `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT`, `403 SERVICE_DISABLED` quota project, and `404` missing `resourcekey` while staying `<= 200` lines (`MOD-PARADOX` safe).
+   - **`share-with-259` (`1x3` Causal Ablation Triad, depends on `share-with-91k`)**: Build an offline-verified Evaluation Triad (`--fixture`, `--validator` `V_skill`, `--oracle` `O_eval`) verified via `run_skill_ablation.py --check-triad` (`distinct_and_leak_free`, `negative_control_baseline`, `read_only_execution`, `behavioral_stub_probe`).
