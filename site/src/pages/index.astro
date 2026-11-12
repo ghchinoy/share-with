@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Guarantee from '../components/Guarantee.astro';
+import AgentWorkflow from '../components/AgentWorkflow.astro';
+import Install from '../components/Install.astro';
+import Footer from '../components/Footer.astro';
+
+const title = 'share-with | Silent Google Drive Sharing CLI & Agent Plugin';
+const description =
+  'Agent-Aware Go CLI and Agent Plugins v1.0.0 package that grants Google Docs, Sheets, Slides, Colab, and Google Drive permissions (reader, commenter, editor) without ever sending notification emails.';
+---
+
+<Base title={title} description={description}>
+  <script type="application/ld+json" is:inline>
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "share-with",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux, Windows",
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "url": "https://ghchinoy.github.io/share-with/"
+    }
+  </script>
+  <Nav />
+  <main id="main">
+    <Hero />
+    <Guarantee />
+    <AgentWorkflow />
+    <Install />
+  </main>
+  <Footer />
+</Base>

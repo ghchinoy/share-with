@@ -1,0 +1,54 @@
+---
+interface Props {
+  variant?: 'split' | 'doc' | 'silent';
+  size?: number | string;
+  class?: string;
+  'aria-hidden'?: boolean | 'true' | 'false';
+}
+
+const {
+  variant = 'split',
+  size = variant === 'split' ? 30 : 48,
+  class: className,
+  'aria-hidden': ariaHidden = true,
+} = Astro.props;
+
+const viewBox =
+  variant === 'doc'
+    ? '3 3 10 18'
+    : variant === 'silent'
+      ? '11.5 3 9.5 18'
+      : '2 2 20 20';
+---
+
+<svg
+  viewBox={viewBox}
+  width={size}
+  height={size}
+  class={className}
+  aria-hidden={ariaHidden ? 'true' : undefined}
+>
+  {(variant === 'split' || variant === 'doc') && (
+    <g class="doc-mark">
+      <path
+        d="M10.4 4.2H6.6A2.4 2.4 0 0 0 4.2 6.6v10.8a2.4 2.4 0 0 0 2.4 2.4h3.8a1.1 1.1 0 0 0 1.1-1.1V5.3a1.1 1.1 0 0 0-1.1-1.1Z"
+        fill="var(--sw-color-doc)"
+      />
+    </g>
+  )}
+  {(variant === 'split' || variant === 'silent') && (
+    <g class="silent-mark">
+      <path
+        d="M13.6 6.8a1.1 1.1 0 0 0-1.1 1.1v8.2a1.1 1.1 0 0 0 1.1 1.1c2.9 0 5.2-2.3 5.2-5.2s-2.3-5.2-5.2-5.2Z"
+        fill="var(--sw-color-silent)"
+      />
+      <path
+        d="M14.2 4.6 19.6 19.4"
+        fill="none"
+        stroke="var(--sw-color-silent)"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      />
+    </g>
+  )}
+</svg>

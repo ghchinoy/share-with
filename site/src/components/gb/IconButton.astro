@@ -1,0 +1,33 @@
+---
+/**
+ * gBreeze icon button, native-element form (@material/web@2.5.0 labs/gb/components/iconbutton).
+ */
+interface Props {
+  color?: 'filled' | 'tonal' | 'outlined' | 'standard';
+  size?: 'xs' | 'sm' | 'md';
+  label: string;
+  href?: string;
+  target?: '_blank' | '_self';
+  class?: string;
+  id?: string;
+  [key: `data-${string}`]: string | undefined;
+}
+
+const { color = 'standard', size = 'sm', label, href, target, class: className, id, ...data } = Astro.props;
+const classes = ['ripple', 'focus-ring-outer', 'icon-btn', `icon-btn-${color}`, `icon-btn-${size}`, className]
+  .filter(Boolean)
+  .join(' ');
+const rel = target === '_blank' ? 'noopener' : undefined;
+---
+
+{
+  href ? (
+    <a id={id} class={classes} href={href} target={target} rel={rel} aria-label={label} {...data}>
+      <slot />
+    </a>
+  ) : (
+    <button id={id} type="button" class={classes} aria-label={label} {...data}>
+      <slot />
+    </button>
+  )
+}

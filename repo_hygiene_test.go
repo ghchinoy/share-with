@@ -132,6 +132,7 @@ func TestAgentPluginAndPortableURLHygiene(t *testing.T) {
 		skipDirs := map[string]bool{
 			".git":         true,
 			".beads":       true,
+			".astro":       true,
 			"bin":          true,
 			"dist":         true,
 			"node_modules": true,

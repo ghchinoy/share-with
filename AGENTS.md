@@ -26,6 +26,7 @@ This guide documents the architecture, silent-sharing safety invariants, Agent-A
   - `sharer.go`: Role translation (`editor` -> Drive v3 `writer`), pre-grant no-downgrade guard (`already_shared` when a recipient holds an equal or higher role), `X-Goog-Drive-Resource-Keys` propagation, and batch permission grants with Shared Drive support (`supportsAllDrives=true`).
 - **`internal/style/`**: Semantic Lipgloss palette (`Accent`, `Command`, `Pass`, `Warn`, `Fail`, `Muted`, `ID`) with automatic degradation for `NO_COLOR`, `SHARE_WITH_NO_TUI`, `--json`, and non-TTY pipes.
 - **`plugins/share-with/` & `.claude-plugin/marketplace.json`**: [Agent Plugins v1.0.0](https://agent-plugins.org) package (`plugin.json` and `skills/share-with/SKILL.md`) and marketplace discovery index validated via `scripts/validate-plugin.sh`.
+- **`site/`**: Astro + Starlight documentation and landing site (`@astrojs/starlight`, `starlight-llms-txt`, `@material/web` gBreeze stylesheets, self-hosted Google Sans Flex & Google Sans Code fonts) deployed to GitHub Pages via `.github/workflows/site.yml`.
 
 ---
 

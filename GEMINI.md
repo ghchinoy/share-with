@@ -32,6 +32,7 @@ bd sync                               # Sync with git
   - `internal/sharer/`: Role mapping (`reader` -> `reader`, `commenter` -> `commenter`, `editor` -> `writer`), headless credential chain, `SilentGuardTransport`, and Drive API v3 client logic.
   - `internal/style/`: Semantic Lipgloss color tokens (`Accent`, `Command`, `Pass`, `Warn`, `Fail`, `Muted`, `ID`) and rune-aware padding prior to ANSI styling.
   - `plugins/share-with/` & `.claude-plugin/marketplace.json`: Agent Plugins v1.0.0 package (`plugin.json` + `skills/share-with/SKILL.md`) following [`skills-to-plugins`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/agent-plugin-authoring/skills/skills-to-plugins/SKILL.md). Reference external skills via `https://github.com/ghchinoy/agent-skills` rather than local filesystem paths.
+  - `site/`: Astro + Starlight documentation and landing site (`npm run check` and `npm run build` inside `site/`).
 - **Agent-Aware CLI Mandates**:
   - Group subcommands using Cobra `GroupID` (`sharing`, `inspection`, `configuration`).
   - Populate `Short`, `Long`, and `Example` on every command (do not manually list child subcommands in a parent command's `Long` field).

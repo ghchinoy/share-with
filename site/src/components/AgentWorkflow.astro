@@ -1,0 +1,154 @@
+---
+import Button from './gb/Button.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const capabilities = [
+  {
+    name: 'Headless Credential Check',
+    command: 'share-with auth status --json',
+    href: `${base}/authentication/`,
+    body: 'Verifies active bearer tokens, service accounts, OAuth tokens, or ADC (with automatic quota_project_id detection) without opening a browser.',
+  },
+  {
+    name: 'Offline Dry-Run Validation',
+    command: 'share-with grant <doc> @alice, bob@ --dry-run --json',
+    href: `${base}/agent-plugin/#step-1-dry-run-first`,
+    body: 'Validates Docs, Sheets, Slides, Colab, or raw file IDs, expands @google.com handles, and previews Drive API role mapping with zero network calls.',
+  },
+  {
+    name: 'Silent Grant Execution',
+    command: 'share-with grant <doc> @alice, doc-reviewers@ --json',
+    href: `${base}/cli-reference/#share-with-grant`,
+    body: 'Grants reader, commenter, or editor access silently while skipping existing equal-or-higher collaborators (already_shared).',
+  },
+  {
+    name: 'Scoped Permission Audit',
+    command: 'share-with list <doc> --limit 25 --json',
+    href: `${base}/cli-reference/#share-with-list`,
+    body: 'Returns bounded, deterministic JSON permission tables so agents can confirm post-grant coverage without context-window bloat.',
+  },
+] as const;
+---
+
+<section class="section workflow" id="agent-plugin">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="headline">Built for both humans and AI coding agents.</h2>
+      <p class="lead">
+        <code>share-with</code> ships a spec-conformant{' '}
+        <a href="https://agent-plugins.org" target="_blank" rel="noopener">Agent Plugins v1.0.0</a>{' '}
+        package (<code>plugins/share-with/plugin.json</code> and <code>SKILL.md</code>) indexed by{' '}
+        <code>.claude-plugin/marketplace.json</code>. Once installed, ask your agent in plain
+        English to share a doc or review packet silently, and the skill guides it through a safe
+        four-step workflow.
+      </p>
+    </div>
+
+    <ul class="list" aria-label="Agent skill workflow">
+      {
+        capabilities.map((item) => (
+          <li>
+            <a class="ripple focus-ring-outer list-item" href={item.href}>
+              <span class="list-item-leading" aria-hidden="true">
+                <span class="glyph-dot"></span>
+              </span>
+              <span class="list-item-content">
+                <span>{item.name}</span>
+                <code class="cmd">{item.command}</code>
+                <span class="list-item-supporting-text">{item.body}</span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="plugin-cta">
+      <Button id="workflow-plugin-guide-btn" color="outlined" size="md" href={`${base}/agent-plugin/`}>
+        Explore the Agent Plugin & Skill Guide
+      </Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lead code {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    font-size: 0.875em;
+  }
+
+  .workflow .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 32px;
+    border-radius: 0;
+  }
+
+  .workflow .list-item {
+    text-decoration: none;
+    --container-shape: var(--md-sys-shape-corner-md);
+    --label-text: var(--md-sys-typescale-title-lg);
+    --top-space: 16px;
+    --bottom-space: 18px;
+    --leading-space: 10px;
+    --trailing-space: 12px;
+    --between-space: 16px;
+    align-items: flex-start;
+    block-size: 100%;
+    border-radius: var(--container-shape);
+    border: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  .workflow .list-item-leading {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 36px;
+    block-size: 36px;
+    border-radius: 50%;
+    background: var(--md-sys-color-surface-container);
+    min-height: 0;
+  }
+
+  .glyph-dot {
+    inline-size: 10px;
+    block-size: 10px;
+    border-radius: 50%;
+    background: var(--sw-color-doc);
+  }
+
+  .workflow .list-item-content {
+    min-inline-size: 0;
+  }
+
+  .workflow .list-item-supporting-text {
+    max-inline-size: 44ch;
+    margin-block-start: 8px;
+    text-wrap: pretty;
+  }
+
+  .cmd {
+    display: block;
+    margin-block-start: 6px;
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.84375rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--md-sys-color-secondary);
+    overflow-x: auto;
+  }
+
+  .plugin-cta {
+    margin-block-start: 36px;
+  }
+
+  @media (max-width: 760px) {
+    .workflow .list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

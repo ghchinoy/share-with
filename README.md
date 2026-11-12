@@ -209,7 +209,7 @@ make lint
 make test
 ```
 
-For architectural invariants and AI agent workflows, see [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md), and the Agent Plugin package in [`plugins/share-with/`](plugins/share-with/skills/share-with/SKILL.md).
+For architectural invariants, documentation site sources, and AI agent workflows, see [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md), [`site/`](site/), and the Agent Plugin package in [`plugins/share-with/`](plugins/share-with/skills/share-with/SKILL.md).
 
 ## Publishing
 

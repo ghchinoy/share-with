@@ -1,0 +1,82 @@
+/*
+ * Starlight theme harmonization with the elephant-goldfish-model aesthetic:
+ * Self-hosted Google Sans Flex & Google Sans Code, crisp neutral surfaces
+ * (#ffffff / #0f1013), subtle hairlines, and Google Blue interactive accents.
+ */
+:root {
+  --sl-font: var(--font-display), system-ui, -apple-system, sans-serif;
+  --sl-font-mono: var(--font-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --sl-text-h1: clamp(2rem, 1.4rem + 2vw, 2.625rem);
+  --sl-line-height-headings: 1.15;
+}
+
+/* Dark theme tokens (Starlight default: :root / [data-theme='dark']) */
+:root,
+:root[data-theme='dark'] {
+  --sl-color-bg: #0f1013;
+  --sl-color-bg-nav: #0f1013;
+  --sl-color-bg-sidebar: #131519;
+  --sl-color-bg-inline-code: #1b1e23;
+  --sl-color-bg-accent: #1b6ef3;
+  --sl-color-hairline-light: #23272d;
+  --sl-color-hairline: #2b3037;
+  --sl-color-hairline-shade: #0f1013;
+  --sl-color-white: #e8eaed;
+  --sl-color-gray-1: #e8eaed;
+  --sl-color-gray-2: #bdc1c6;
+  --sl-color-gray-3: #9aa0a6;
+  --sl-color-gray-4: #5f6368;
+  --sl-color-gray-5: #2b3037;
+  --sl-color-gray-6: #15171b;
+  --sl-color-black: #0f1013;
+  --sl-color-accent-low: #08285e;
+  --sl-color-accent: #4c8df6;
+  --sl-color-accent-high: #a8c7fa;
+  --sl-color-text-accent: #8ab4f8;
+}
+
+/* Light theme tokens */
+:root[data-theme='light'] {
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #f8f9fa;
+  --sl-color-bg-inline-code: #f1f3f4;
+  --sl-color-bg-accent: #0b57d0;
+  --sl-color-hairline-light: #e9ebee;
+  --sl-color-hairline: #dadce0;
+  --sl-color-hairline-shade: #dadce0;
+  --sl-color-white: #1f1f1f;
+  --sl-color-gray-1: #202124;
+  --sl-color-gray-2: #3c4043;
+  --sl-color-gray-3: #5f6368;
+  --sl-color-gray-4: #80868b;
+  --sl-color-gray-5: #dadce0;
+  --sl-color-gray-6: #f1f3f4;
+  --sl-color-gray-7: #f8f9fa;
+  --sl-color-black: #ffffff;
+  --sl-color-accent-low: #e8f0fe;
+  --sl-color-accent: #0b57d0;
+  --sl-color-accent-high: #041e49;
+  --sl-color-text-accent: #0b57d0;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  letter-spacing: -0.018em;
+  font-weight: 500;
+}
+
+.site-title {
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.sl-markdown-content code:not(:where(.not-content *)) {
+  border-radius: 6px;
+  padding-inline: 0.35em;
+}
+
+.expressive-code pre {
+  border-radius: 14px !important;
+}

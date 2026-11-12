@@ -185,7 +185,7 @@ local_path_hits="$(python3 - <<'PY'
 import os, re
 
 pattern = re.compile(r"(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|~/projects/|[A-Za-z]:\\Users\\)")
-skip_dirs = {".git", ".beads", "bin", "dist", "node_modules"}
+skip_dirs = {".git", ".beads", ".astro", "bin", "dist", "node_modules"}
 check_exts = {".md", ".json", ".yaml", ".yml"}
 check_names = {"Makefile"}
 

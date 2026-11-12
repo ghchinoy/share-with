@@ -1,0 +1,164 @@
+---
+import Mark from './Mark.astro';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const layers = [
+  {
+    step: '01',
+    name: 'Zero notification flags',
+    tag: 'CLI surface',
+    body: 'Exposes no --notify, --send-notification-email, or custom message flags, and rejects owner and organizer transfers because Google Drive forces notification emails on ownership changes.',
+  },
+  {
+    step: '02',
+    name: 'Explicit API & no-downgrade guard',
+    tag: 'Drive API v3',
+    body: 'Hardcodes sendNotificationEmail=false and supportsAllDrives=true on every Permissions.Create call, forwards X-Goog-Drive-Resource-Keys, and skips recipients who already hold equal or higher access.',
+  },
+  {
+    step: '03',
+    name: 'HTTP RoundTripper wire lock',
+    tag: 'SilentGuardTransport',
+    body: 'Inspects every outgoing POST .../permissions request in memory and aborts before network transmission if sendNotificationEmail is missing, not "false", or paired with emailMessage.',
+  },
+] as const;
+---
+
+<section class="section guarantee" id="guarantee">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="headline">Silence enforced at three independent layers.</h2>
+      <p class="lead">
+        Google Drive API v3 defaults <code>sendNotificationEmail</code> to <code>true</code> when
+        omitted on user and group permissions. <code>share-with</code> makes accidental notification
+        blasts structurally impossible, whether invoked by a human operator or an autonomous coding
+        agent.
+      </p>
+    </div>
+
+    <ol class="layers">
+      {
+        layers.map((layer) => (
+          <li class="layer">
+            <span class="marker" aria-hidden="true">{layer.step}</span>
+            <h3 class="title">{layer.name}</h3>
+            <span class="tag">{layer.tag}</span>
+            <p class="muted">{layer.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="pair-callout">
+      <div class="callout-mark">
+        <Mark variant="silent" size={40} />
+      </div>
+      <div class="callout-copy">
+        <h3 class="title">Safe to re-run across full reviewer rosters</h3>
+        <p class="muted">
+          Before creating permissions, <code>share-with</code> checks existing ACLs and reports{' '}
+          <code>already_shared (editor)</code> or <code>already_shared (commenter)</code> without
+          calling <code>Permissions.Create</code>, so existing collaborators are never downgraded to{' '}
+          <code>reader</code>. Read the{' '}
+          <a href={`${base}/silent-guarantee/`}>Silent-Only Guarantee architecture guide</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .guarantee {
+    background: var(--md-sys-color-surface-container-low);
+  }
+
+  .lead code,
+  .callout-copy code {
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--md-sys-color-surface-container);
+    color: var(--md-sys-color-on-surface);
+    font-size: 0.875em;
+  }
+
+  .layers {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 48px;
+  }
+
+  .layer {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-block-start: 44px;
+    padding-inline-end: 24px;
+    border-block-start: 1px solid var(--md-sys-color-outline-variant);
+  }
+
+  .layers .layer:last-child {
+    padding-inline-end: 0;
+  }
+
+  .marker {
+    position: absolute;
+    inset-block-start: -20px;
+    inset-inline-start: 0;
+    outline: 6px solid var(--md-sys-color-surface-container-low);
+    display: inline-grid;
+    place-items: center;
+    inline-size: 40px;
+    block-size: 40px;
+    border-radius: 50%;
+    background: var(--md-sys-color-surface-container);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--sw-color-silent);
+  }
+
+  .tag {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.8125rem;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .pair-callout {
+    margin-block-start: 56px;
+    padding-block-start: 36px;
+    border-block-start: 1px solid var(--md-sys-color-outline-variant);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+    max-inline-size: 760px;
+  }
+
+  .callout-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  @media (max-width: 760px) {
+    .layers {
+      grid-template-columns: 1fr;
+      row-gap: 52px;
+    }
+
+    .layer {
+      padding-block-start: 40px;
+      padding-inline-end: 0;
+    }
+
+    .pair-callout {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+</style>

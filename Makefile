@@ -1,4 +1,4 @@
-.PHONY: help build snapshot run test lint fmt vet validate tidy install clean
+.PHONY: help build snapshot site-build run test lint fmt vet validate tidy install clean
 
 BINARY_NAME := share-with
 BIN_DIR := bin
@@ -16,6 +16,9 @@ build: ## Build the share-with binary into bin/share-with
 
 snapshot: ## Cross-compile local snapshot archives into dist/ via GoReleaser
 	GOTELEMETRY=off GOTOOLCHAIN=local goreleaser release --snapshot --clean
+
+site-build: ## Typecheck and build the Astro + Starlight site under ./site
+	cd site && ASTRO_TELEMETRY_DISABLED=1 npm run check && ASTRO_TELEMETRY_DISABLED=1 npm run build
 
 run: ## Run share-with from source (pass ARGS="...")
 	$(GO) run . $(ARGS)

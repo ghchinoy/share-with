@@ -28,6 +28,11 @@ token.json
 .idea/
 .vscode/
 
+# Astro + Starlight site build & dependencies
+site/node_modules/
+site/dist/
+site/.astro/
+
 # Beads / Dolt files (added by bd init)
 .dolt/
 *.db
