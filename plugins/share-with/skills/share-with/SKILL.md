@@ -1,6 +1,11 @@
 ---
 name: share-with
-description: Silently share Google Docs, Sheets, Slides, and Drive files or folders with email recipients as reader (default), commenter, or editor with notifications permanently disabled.
+description: Silently share Google Docs, Sheets, Slides, Colab notebooks, and Drive files or folders with email recipients as reader (default), commenter, or editor with notifications permanently disabled.
+license: Apache-2.0
+compatibility: Requires the share-with CLI on PATH and Google Drive API v3 credentials.
+metadata:
+  author: ghchinoy
+  version: "0.1.0"
 ---
 
 # share-with Skill
@@ -9,7 +14,7 @@ Use `share-with` whenever an operator or autonomous agent needs to grant Google 
 
 ## Prerequisites & Headless Authentication
 
-1. Verify credential readiness without opening a browser:
+1. Ensure `share-with` is installed (`go install github.com/ghchinoy/share-with@latest`) and verify credential readiness without opening a browser:
    ```bash
    share-with auth status --json
    ```

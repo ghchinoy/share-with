@@ -1,0 +1,16 @@
+{
+  "name": "share-with",
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "share-with",
+      "source": "./plugins/share-with",
+      "description": "Silently grant Google Docs, Sheets, Slides, Colab, and Google Drive permissions (reader, commenter, editor) with notifications permanently disabled.",
+      "skills": [
+        "./plugins/share-with/skills/share-with"
+      ]
+    }
+  ]
+}

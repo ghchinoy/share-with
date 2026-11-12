@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "share-with",
+  "version": "0.1.0",
+  "description": "Agent Plugin for silently granting Google Docs, Sheets, Slides, Colab, and Google Drive permissions (reader, commenter, editor) with notifications permanently disabled.",
+  "author": {
+    "name": "ghchinoy",
+    "url": "https://github.com/ghchinoy"
+  },
+  "homepage": "https://github.com/ghchinoy/share-with",
+  "repository": "https://github.com/ghchinoy/share-with",
+  "license": "Apache-2.0",
+  "keywords": [
+    "google-drive",
+    "google-docs",
+    "permissions",
+    "silent-sharing",
+    "agent-aware-cli"
+  ]
+}

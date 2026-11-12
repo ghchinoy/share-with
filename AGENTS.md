@@ -24,6 +24,7 @@ This guide documents the architecture, silent-sharing safety invariants, Agent-A
   - `auth.go`: Headless-first credential resolution (`SHARE_WITH_ACCESS_TOKEN`, service account JSON, authorized user JSON, cached desktop OAuth token, and ADC with automatic `quota_project_id` JSON extraction and active `gcloud` configuration project fallback).
   - `sharer.go`: Role translation (`editor` -> Drive v3 `writer`), pre-grant no-downgrade guard (`already_shared` when a recipient holds an equal or higher role), `X-Goog-Drive-Resource-Keys` propagation, and batch permission grants with Shared Drive support (`supportsAllDrives=true`).
 - **`internal/style/`**: Semantic Lipgloss palette (`Accent`, `Command`, `Pass`, `Warn`, `Fail`, `Muted`, `ID`) with automatic degradation for `NO_COLOR`, `SHARE_WITH_NO_TUI`, `--json`, and non-TTY pipes.
+- **`plugins/share-with/` & `.claude-plugin/marketplace.json`**: [Agent Plugins v1.0.0](https://agent-plugins.org) package (`plugin.json` and `skills/share-with/SKILL.md`) and marketplace discovery index validated via `scripts/validate-plugin.sh`.
 
 ---
 
@@ -41,6 +42,8 @@ If a recipient address is not associated with a Google Account, Google Drive ret
 
 ## 3. Agent-Aware CLI Conventions
 
+Aligned with [`agent-aware-cli`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/agent-aware-cli/skills/agent-aware-cli/SKILL.md) and [`go-readability`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/go-readability/skills/go-readability/SKILL.md) in [`ghchinoy/agent-skills`](https://github.com/ghchinoy/agent-skills):
+
 1. **Logical Grouping**: Every subcommand belongs to a Cobra `GroupID` (`sharing`, `inspection`, `configuration`).
 2. **Tri-Part Documentation**: Populate `Short`, `Long`, and `Example` on every command.
 3. **Structured JSON**: Support `--json` across `grant`, `list`, `auth status`, `auth login`, and error outputs.
@@ -55,12 +58,13 @@ If a recipient address is not associated with a Google Account, Google Drive ret
 # Build binary into bin/share-with
 make build
 
-# Run unit and CLI contract tests with race detector
+# Run unit, CLI contract, and plugin/hygiene tests with race detector
 make test
 
-# Format and vet Go source files
+# Format, vet Go source files, and validate Agent Plugin & portable URL hygiene
 make fmt
 make lint
+make validate
 ```
 
 ---
@@ -69,6 +73,7 @@ make lint
 
 Documentation in `README.md` and `docs/` follows strict house style:
 - **README Quality Gate**: Audit `README.md` edits against [`make-readme`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/repo-authoring/skills/make-readme/SKILL.md) from [`ghchinoy/agent-skills`](https://github.com/ghchinoy/agent-skills) (Mark Allen 8-dimension rubric) and maintain a score of **34/40 or higher (Excellent band)**.
+- **Plugin Conformance**: Keep `plugins/share-with/` and `.claude-plugin/marketplace.json` conformant with [`skills-to-plugins`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/agent-plugin-authoring/skills/skills-to-plugins/SKILL.md) (`make validate` and `go test ./...` enforce 0 errors).
 - **Portable Skill References**: Reference external agent skills and plugins by their canonical source repository URL (such as `https://github.com/ghchinoy/agent-skills`) rather than machine-local filesystem paths.
 - Zero em dashes in prose; use commas, colons, or parentheses.
 - Active voice with concrete actors.
@@ -78,6 +83,6 @@ Documentation in `README.md` and `docs/` follows strict house style:
 
 ## 6. Issue Tracking & Repository Hygiene
 
-- **Beads (`bd`) Parity**: After creating or updating issues in `bd`, run `bd export -o .beads/issues.jsonl` so Git-tracked JSONL matches `.beads/dolt`. If `.beads/dolt` reports Dolt lock contention, isolate and stop only the `dolt sql-server` PID bound to this repository's `.beads/` directory rather than killing servers belonging to other projects.
-- **Root-Anchored Binary Ignore**: Keep `/share-with` root-anchored in `.gitignore` so `skills/share-with/SKILL.md` remains tracked by Git.
+- **Beads (`bd`) Parity**: After creating or updating issues in `bd`, run `bd export -o .beads/issues.jsonl` so Git-tracked JSONL matches `.beads/dolt`. If `.beads/dolt` reports Dolt lock contention, follow [`bd-dolt-troubleshooter`](https://github.com/ghchinoy/agent-skills/blob/main/plugins/beads-workflow/skills/bd-dolt-troubleshooter/SKILL.md) to isolate and stop only the `dolt sql-server` PID bound to this repository's `.beads/` directory rather than killing servers belonging to other projects.
+- **Root-Anchored Binary Ignore**: Keep `/share-with` root-anchored in `.gitignore` so `plugins/share-with/` and `plugins/share-with/skills/share-with/SKILL.md` remain tracked by Git.
 - **Google Docs Hyperlink Extraction**: Plain-text exports of Google Docs strip table-cell hyperlinks and smart chips; use Drive API `Files.Export` with `text/html` when implementing `links` and `audit` commands (`share-with-96s`, `share-with-aqc`).

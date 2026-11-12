@@ -34,6 +34,29 @@ make build
 # Binary is written to ./bin/share-with
 ```
 
+### Install the Agent Plugin & Skill
+
+`share-with` ships an [Agent Plugins v1.0.0](https://agent-plugins.org) package under [`plugins/share-with/`](plugins/share-with/plugin.json) indexed by [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json):
+
+```bash
+# Open Agent Skills CLI (npx skills)
+npx skills add ghchinoy/share-with
+
+# Antigravity CLI
+agy plugin install https://github.com/ghchinoy/share-with
+
+# Claude Code
+claude plugin marketplace add ghchinoy/share-with
+claude plugin install share-with@share-with
+
+# Codex CLI
+codex plugin marketplace add ghchinoy/share-with
+codex plugin add share-with@share-with
+
+# Gemini CLI (from a local clone)
+gemini skills install --path plugins/share-with/skills/share-with
+```
+
 ## Usage
 
 Authenticate once with Google Cloud Application Default Credentials including the `drive` scope (a plain `gcloud auth application-default login` without `--scopes` only grants `cloud-platform` and will fail with `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT`):
@@ -186,7 +209,7 @@ make lint
 make test
 ```
 
-For architectural invariants and AI agent workflows, see [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md), and the agent skill in [`skills/share-with/SKILL.md`](skills/share-with/SKILL.md).
+For architectural invariants and AI agent workflows, see [`AGENTS.md`](AGENTS.md), [`GEMINI.md`](GEMINI.md), and the Agent Plugin package in [`plugins/share-with/`](plugins/share-with/skills/share-with/SKILL.md).
 
 ## Publishing
 

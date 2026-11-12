@@ -1,4 +1,4 @@
-.PHONY: help build run test lint fmt vet tidy install clean
+.PHONY: help build run test lint fmt vet validate tidy install clean
 
 BINARY_NAME := share-with
 BIN_DIR := bin
@@ -23,11 +23,14 @@ fmt: ## Format all Go source files with gofmt
 vet: ## Run go vet static checks
 	$(GO) vet ./...
 
-lint: vet ## Run golangci-lint if installed, falling back to go vet
+validate: ## Validate Agent Plugin manifests, skill metadata, and portable URL hygiene
+	./scripts/validate-plugin.sh
+
+lint: vet validate ## Run go vet, plugin/hygiene validation, and golangci-lint if installed
 	@if command -v golangci-lint >/dev/null 2>&1; then \
 		golangci-lint run ./...; \
 	else \
-		echo "golangci-lint not found; go vet passed"; \
+		echo "golangci-lint not found; go vet and plugin validation passed"; \
 	fi
 
 tidy: ## Tidy Go module dependencies
