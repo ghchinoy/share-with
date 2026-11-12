@@ -1,11 +1,12 @@
-.PHONY: help build snapshot site-build run test lint fmt vet validate tidy install clean
+.PHONY: help build snapshot site-build run test lint fmt vet validate license license-check tidy install clean
 
 BINARY_NAME := share-with
 BIN_DIR := bin
-GO ?= GOTELEMETRY=off GOTOOLCHAIN=local go
+GO ?= GOTELEMETRY=off go
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo dev)
 BUILD_DATE ?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS := -s -w -X github.com/ghchinoy/share-with/cmd.Commit=$(COMMIT) -X github.com/ghchinoy/share-with/cmd.Date=$(BUILD_DATE)
+ADDLICENSE_IGNORES := -ignore 'site/node_modules/**' -ignore 'site/dist/**' -ignore 'site/.astro/**' -ignore '.beads/**' -ignore 'bin/**' -ignore 'dist/**'
 
 help: ## Show available Makefile targets
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -15,7 +16,7 @@ build: ## Build the share-with binary into bin/share-with
 	$(GO) build -trimpath -ldflags="$(LDFLAGS)" -o $(BIN_DIR)/$(BINARY_NAME) .
 
 snapshot: ## Cross-compile local snapshot archives into dist/ via GoReleaser
-	GOTELEMETRY=off GOTOOLCHAIN=local goreleaser release --snapshot --clean
+	GOTELEMETRY=off goreleaser release --snapshot --clean
 
 site-build: ## Typecheck and build the Astro + Starlight site under ./site
 	cd site && ASTRO_TELEMETRY_DISABLED=1 npm run check && ASTRO_TELEMETRY_DISABLED=1 npm run build
@@ -34,6 +35,12 @@ vet: ## Run go vet static checks
 
 validate: ## Validate Agent Plugin manifests, skill metadata, and portable URL hygiene
 	./scripts/validate-plugin.sh
+
+license: ## Apply Apache-2.0 copyright headers via addlicense
+	addlicense -c "Google LLC" -l apache -y 2026 $(ADDLICENSE_IGNORES) .
+
+license-check: ## Verify Apache-2.0 copyright headers via addlicense
+	addlicense -check -c "Google LLC" -l apache -y 2026 $(ADDLICENSE_IGNORES) .
 
 lint: vet validate ## Run go vet, plugin/hygiene validation, and golangci-lint if installed
 	@if command -v golangci-lint >/dev/null 2>&1; then \

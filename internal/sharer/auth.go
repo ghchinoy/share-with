@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // auth.go resolves headless-safe Google Drive OAuth2, ADC, and Service Account credentials.
 
 package sharer
@@ -165,7 +179,7 @@ func RunInteractiveLogin(ctx context.Context, credentialsPath, tokenPath string,
 	if err != nil {
 		return fmt.Errorf("binding local loopback OAuth callback listener: %w", err)
 	}
-	defer listener.Close()
+	defer func() { _ = listener.Close() }()
 
 	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
 	if !ok {
@@ -230,7 +244,7 @@ func RunInteractiveLogin(ctx context.Context, credentialsPath, tokenPath string,
 		}
 	}()
 	defer func() {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
 		defer cancel()
 		_ = srv.Shutdown(shutdownCtx)
 	}()
@@ -325,15 +339,18 @@ func resolveTokenSource(ctx context.Context, cfg config.Resolved) (oauth2.TokenS
 			}
 			return oauthCfg.TokenSource(ctx, &tok), quotaProject, nil
 
-		default:
-			creds, credErr := google.CredentialsFromJSONWithParams(ctx, rawJSON, params)
+		case "external_account":
+			creds, credErr := google.CredentialsFromJSONWithTypeAndParams(ctx, rawJSON, google.ExternalAccount, params)
 			if credErr != nil {
-				return nil, "", fmt.Errorf("loading credentials %q: %w", cfg.CredentialsFile, credErr)
+				return nil, "", fmt.Errorf("loading external account credentials %q: %w", cfg.CredentialsFile, credErr)
 			}
 			if quotaProject == "" {
 				quotaProject = extractCredsQuotaProject(creds)
 			}
 			return creds.TokenSource, quotaProject, nil
+
+		default:
+			return nil, "", fmt.Errorf("unsupported Google credential type %q in %q", kind, cfg.CredentialsFile)
 		}
 	}
 
@@ -416,7 +433,7 @@ func readGcloudActiveProject(getenv func(string) string, homeDir string) string 
 	if err != nil {
 		return ""
 	}
-	defer cfgFile.Close()
+	defer func() { _ = cfgFile.Close() }()
 
 	var coreProject, billingQuotaProject string
 	section := ""

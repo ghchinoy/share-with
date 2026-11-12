@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // auth.go provides headless credential status checks and interactive desktop OAuth setup.
 
 package cmd
@@ -5,6 +19,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -18,6 +33,8 @@ func newAuthCmd(app *appState) *cobra.Command {
 		Use:     "auth",
 		GroupID: "configuration",
 		Short:   "Inspect headless authentication status or authorize a desktop OAuth client",
+		Long: `Inspect active Google Drive API v3 credentials in headless mode or run a one-time
+local loopback OAuth2 PKCE flow to cache a refresh token for a desktop OAuth client JSON.`,
 		Example: `  # Check active Google Drive credentials without browser prompts
   share-with auth status
 
@@ -61,22 +78,8 @@ XDG config, and Application Default Credentials) without opening a browser.`,
 
 			status := sharer.InspectAuth(ctx, resolvedCfg)
 			out := cmd.OutOrStdout()
-			if app.jsonOutput {
-				payload := struct {
-					sharer.AuthStatus
-					ConfigPath   string `json:"config_path"`
-					ConfigLoaded bool   `json:"config_loaded"`
-				}{
-					AuthStatus:   status,
-					ConfigPath:   resolvedCfg.ConfigPath,
-					ConfigLoaded: resolvedCfg.ConfigLoaded,
-				}
-				if err := printJSON(out, payload); err != nil {
-					return err
-				}
-			} else {
-				palette := style.ForStream(out, false, app.getenv)
-				renderAuthStatus(out, palette, status, resolvedCfg.ConfigPath, resolvedCfg.ConfigLoaded)
+			if err := outputAuthStatus(out, app, status, resolvedCfg.ConfigPath, resolvedCfg.ConfigLoaded); err != nil {
+				return err
 			}
 
 			if !status.Ready {
@@ -89,6 +92,24 @@ XDG config, and Application Default Credentials) without opening a browser.`,
 			return nil
 		},
 	}
+}
+
+func outputAuthStatus(out io.Writer, app *appState, status sharer.AuthStatus, configPath string, configLoaded bool) error {
+	if app.jsonOutput {
+		payload := struct {
+			sharer.AuthStatus
+			ConfigPath   string `json:"config_path"`
+			ConfigLoaded bool   `json:"config_loaded"`
+		}{
+			AuthStatus:   status,
+			ConfigPath:   configPath,
+			ConfigLoaded: configLoaded,
+		}
+		return printJSON(out, payload)
+	}
+	palette := style.ForStream(out, false, app.getenv)
+	renderAuthStatus(out, palette, status, configPath, configLoaded)
+	return nil
 }
 
 func newAuthLoginCmd(app *appState) *cobra.Command {

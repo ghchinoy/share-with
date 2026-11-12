@@ -15,6 +15,7 @@
 - [Publishing](#publishing)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+- [Disclaimer](#disclaimer)
 - [License](#license)
 
 ## Installation
@@ -252,6 +253,12 @@ Pull requests are welcome. For major changes or new subcommands, please open an 
 Before submitting a pull request:
 1. Run `make fmt && make lint && make test` and confirm all race-enabled tests pass.
 2. Preserve the three-layer silent-sharing contract documented in [`AGENTS.md`](AGENTS.md) and avoid binding `127.0.0.1` in unit tests.
+
+## Disclaimer
+
+> [!CAUTION]
+> This is **not** an officially supported Google product.
+> This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security).
 
 ## License
 

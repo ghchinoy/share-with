@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sharer
 
 import (
@@ -17,12 +31,6 @@ import (
 
 	"github.com/ghchinoy/share-with/internal/docurl"
 )
-
-type roundTripFunc func(*http.Request) (*http.Response, error)
-
-func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	return f(req)
-}
 
 func TestParseRole(t *testing.T) {
 	tests := []struct {
@@ -125,7 +133,7 @@ func TestSilentGuardTransport_BlocksNotifications(t *testing.T) {
 			}
 			resp, err := guard.RoundTrip(req)
 			if resp != nil && resp.Body != nil {
-				defer resp.Body.Close()
+				defer func() { _ = resp.Body.Close() }()
 			}
 			if tc.wantBlock {
 				if !errors.Is(err, ErrNotificationBlocked) {
@@ -487,4 +495,10 @@ func TestClientShare_NoDowngradeSkipsEqualOrHigherRolesAndSendsResourceKey(t *te
 			t.Errorf("request[%d] X-Goog-Drive-Resource-Keys = %q, want %q", i, gotHdr, wantRKHeader)
 		}
 	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }

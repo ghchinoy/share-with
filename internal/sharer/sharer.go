@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Package sharer implements silent-only Google Drive and Google Docs permission
 // management using Google Drive API v3.
 package sharer
@@ -192,7 +206,7 @@ func (c *Client) Share(ctx context.Context, req ShareRequest) (ShareReport, erro
 		return ShareReport{}, err
 	}
 	if c == nil || c.svc == nil {
-		return ShareReport{}, errors.New("Drive client is not initialized")
+		return ShareReport{}, errors.New("drive client is not initialized")
 	}
 
 	report := ShareReport{
@@ -299,7 +313,7 @@ func (c *Client) Share(ctx context.Context, req ShareRequest) (ShareReport, erro
 // and bounded to limit entries to protect terminal and agent context windows.
 func (c *Client) FetchPermissions(ctx context.Context, target docurl.Target, roleFilter string, limit int) (PermissionListReport, error) {
 	if c == nil || c.svc == nil {
-		return PermissionListReport{}, errors.New("Drive client is not initialized")
+		return PermissionListReport{}, errors.New("drive client is not initialized")
 	}
 	if limit <= 0 {
 		limit = 25
@@ -471,11 +485,11 @@ func wrapDriveFileError(fileID string, err error) error {
 	if errors.As(err, &apiErr) {
 		switch apiErr.Code {
 		case http.StatusNotFound:
-			return fmt.Errorf("Drive file %q not found (HTTP 404): %w", fileID, err)
+			return fmt.Errorf("drive file %q not found (HTTP 404): %w", fileID, err)
 		case http.StatusForbidden:
 			return fmt.Errorf("access denied for Drive file %q (HTTP 403): %w", fileID, err)
 		case http.StatusUnauthorized:
-			return fmt.Errorf("Drive authentication rejected for file %q (HTTP 401): %w", fileID, err)
+			return fmt.Errorf("drive authentication rejected for file %q (HTTP 401): %w", fileID, err)
 		}
 	}
 	return fmt.Errorf("fetching metadata for Drive file %q: %w", fileID, err)

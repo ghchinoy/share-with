@@ -1,6 +1,6 @@
 module github.com/ghchinoy/share-with
 
-go 1.26.0
+go 1.26.11
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0

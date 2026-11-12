@@ -1,19 +1,96 @@
 #!/usr/bin/env bash
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # Validates Agent Plugins v1.0.0 conformance, Agent Skills metadata,
 # marketplace discovery manifests, and portable URL hygiene (zero machine-local paths).
 
 set -euo pipefail
 
-REPO_ROOT="${1:-.}"
+JSON_MODE=0
+REPO_ROOT="."
+
+usage() {
+  cat <<'EOF'
+Usage: validate-plugin.sh [--json] [--help] [repo_root]
+
+Validates Agent Plugins v1.0.0 conformance, Agent Skills (SKILL.md) metadata,
+marketplace discovery manifests (.claude-plugin/marketplace.json), and portable
+URL hygiene (zero machine-local paths).
+
+Options:
+  --json      Emit structured JSON report ({"passed": bool, "score": int, "errors": [...], "warnings": [...]})
+  -h, --help  Show this help message and exit
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --json)
+      JSON_MODE=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 1
+      ;;
+    *)
+      REPO_ROOT="$1"
+      shift
+      ;;
+  esac
+done
+
 cd "$REPO_ROOT"
 
 ERRORS=0
 WARNINGS=0
+ERR_LIST=()
+WARN_LIST=()
 
-info() { printf '==> %s\n' "$1"; }
-ok()   { printf '  [OK] %s\n' "$1"; }
-warn() { printf '  [WARN] %s\n' "$1"; WARNINGS=$((WARNINGS + 1)); }
-err()  { printf '  [ERR] %s\n' "$1"; ERRORS=$((ERRORS + 1)); }
+info() {
+  if [ "$JSON_MODE" -eq 0 ]; then
+    printf '==> %s\n' "$1"
+  fi
+}
+
+ok() {
+  if [ "$JSON_MODE" -eq 0 ]; then
+    printf '  [OK] %s\n' "$1"
+  fi
+}
+
+warn() {
+  WARN_LIST+=("$1")
+  WARNINGS=$((WARNINGS + 1))
+  if [ "$JSON_MODE" -eq 0 ]; then
+    printf '  [WARN] %s\n' "$1"
+  fi
+}
+
+err() {
+  ERR_LIST+=("$1")
+  ERRORS=$((ERRORS + 1))
+  if [ "$JSON_MODE" -eq 0 ]; then
+    printf '  [ERR] %s\n' "$1"
+  fi
+}
 
 info "1. Checking Agent Plugins directory layout and symlink containment"
 if [ ! -d "plugins" ]; then
@@ -210,6 +287,31 @@ if [ -n "$local_path_hits" ]; then
   done <<< "$local_path_hits"
 else
   ok "Zero machine-local filesystem paths in documentation, manifests, or Makefile"
+fi
+
+if [ "$JSON_MODE" -eq 1 ]; then
+  ERR_SERIALIZED="$(printf '%s\n' "${ERR_LIST[@]:-}")"
+  WARN_SERIALIZED="$(printf '%s\n' "${WARN_LIST[@]:-}")"
+  python3 - "$ERRORS" "$WARNINGS" "$ERR_SERIALIZED" "$WARN_SERIALIZED" <<'PY'
+import json, sys
+
+err_count = int(sys.argv[1])
+warn_count = int(sys.argv[2])
+errs = [line for line in sys.argv[3].splitlines() if line]
+warns = [line for line in sys.argv[4].splitlines() if line]
+score = max(0, 100 - (err_count * 25) - (warn_count * 5))
+print(json.dumps({
+    "passed": err_count == 0,
+    "score": score,
+    "errors": errs,
+    "warnings": warns,
+}, indent=2))
+PY
+  if [ "$ERRORS" -eq 0 ]; then
+    exit 0
+  else
+    exit 1
+  fi
 fi
 
 echo

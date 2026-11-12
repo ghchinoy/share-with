@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // grant.go implements the silent permission-granting workflow.
 
 package cmd
@@ -5,6 +19,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -135,12 +150,8 @@ func executeGrant(ctx context.Context, cmd *cobra.Command, app *appState, flags 
 
 	report, shareErr := client.Share(ctx, shareReq)
 	if len(report.Results) > 0 {
-		if app.jsonOutput {
-			if jsonErr := printJSON(out, report); jsonErr != nil {
-				return jsonErr
-			}
-		} else {
-			renderShareReport(out, palette, report)
+		if jsonErr := outputShareReport(out, palette, app.jsonOutput, report); jsonErr != nil {
+			return jsonErr
 		}
 		if shareErr != nil {
 			return &CLIError{Err: shareErr, AlreadyOutput: true}
@@ -149,6 +160,14 @@ func executeGrant(ctx context.Context, cmd *cobra.Command, app *appState, flags 
 	}
 
 	return shareErr
+}
+
+func outputShareReport(out io.Writer, palette style.Palette, jsonOutput bool, report sharer.ShareReport) error {
+	if jsonOutput {
+		return printJSON(out, report)
+	}
+	renderShareReport(out, palette, report)
+	return nil
 }
 
 func extractTargetAndEmails(flagURL string, args []string) (string, []string, error) {
@@ -168,29 +187,35 @@ func collectEmails(app *appState, flags *grantFlags, positionalEmails []string, 
 	combinedRaw = append(combinedRaw, positionalEmails...)
 
 	if fileSpec := strings.TrimSpace(flags.emailsFile); fileSpec != "" {
-		var fileEmails []string
-		var err error
-		if fileSpec == "-" {
-			fileEmails, err = docurl.ReadEmailsFromReaderWithDomain(app.stdin, defaultDomain)
-			if err != nil {
-				return nil, withHint(err, "Pipe one email or @handle per line (or comma-separated) to stdin when using '--emails-file -'.")
-			}
-		} else {
-			fileHandle, openErr := os.Open(fileSpec)
-			if openErr != nil {
-				return nil, withHint(
-					fmt.Errorf("opening emails file %q: %w", fileSpec, openErr),
-					fmt.Sprintf("Verify that %q exists and is readable, or pass '-' to read from stdin.", fileSpec),
-				)
-			}
-			defer fileHandle.Close()
-			fileEmails, err = docurl.ReadEmailsFromReaderWithDomain(fileHandle, defaultDomain)
-			if err != nil {
-				return nil, withHint(err, fmt.Sprintf("Ensure %q contains valid emails or handles (one per line or comma-separated).", fileSpec))
-			}
+		fileEmails, err := readEmailsFromFileSpec(app.stdin, fileSpec, defaultDomain)
+		if err != nil {
+			return nil, err
 		}
 		combinedRaw = append(combinedRaw, fileEmails...)
 	}
 
 	return docurl.ParseEmailsWithDomain(combinedRaw, defaultDomain)
+}
+
+func readEmailsFromFileSpec(stdin io.Reader, fileSpec, defaultDomain string) ([]string, error) {
+	if fileSpec == "-" {
+		fileEmails, err := docurl.ReadEmailsFromReaderWithDomain(stdin, defaultDomain)
+		if err != nil {
+			return nil, withHint(err, "Pipe one email or @handle per line (or comma-separated) to stdin when using '--emails-file -'.")
+		}
+		return fileEmails, nil
+	}
+	fileHandle, openErr := os.Open(fileSpec)
+	if openErr != nil {
+		return nil, withHint(
+			fmt.Errorf("opening emails file %q: %w", fileSpec, openErr),
+			fmt.Sprintf("Verify that %q exists and is readable, or pass '-' to read from stdin.", fileSpec),
+		)
+	}
+	defer func() { _ = fileHandle.Close() }()
+	fileEmails, err := docurl.ReadEmailsFromReaderWithDomain(fileHandle, defaultDomain)
+	if err != nil {
+		return nil, withHint(err, fmt.Sprintf("Ensure %q contains valid emails or handles (one per line or comma-separated).", fileSpec))
+	}
+	return fileEmails, nil
 }

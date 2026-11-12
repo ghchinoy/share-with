@@ -1,3 +1,17 @@
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 import (
@@ -184,6 +198,47 @@ func TestAgentPluginAndPortableURLHygiene(t *testing.T) {
 		})
 		if err != nil {
 			t.Fatalf("walking repository: %v", err)
+		}
+	})
+
+	t.Run("go_and_script_apache_headers_present", func(t *testing.T) {
+		skipDirs := map[string]bool{
+			".git":         true,
+			".beads":       true,
+			".astro":       true,
+			"bin":          true,
+			"dist":         true,
+			"node_modules": true,
+		}
+		err := filepath.WalkDir(".", func(path string, d fs.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if d.IsDir() {
+				if skipDirs[d.Name()] {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			ext := filepath.Ext(d.Name())
+			if ext != ".go" && ext != ".sh" {
+				return nil
+			}
+			raw, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			head := string(raw)
+			if len(head) > 600 {
+				head = head[:600]
+			}
+			if !strings.Contains(head, "Copyright 2026 Google LLC") || !strings.Contains(head, "Apache License, Version 2.0") {
+				t.Errorf("%s is missing Apache-2.0 'Copyright 2026 Google LLC' header; run 'make license'", path)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("walking repository for license headers: %v", err)
 		}
 	})
 }
