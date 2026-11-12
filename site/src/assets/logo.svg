@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2 2 20 20" width="28" height="28">
+  <style>
+    :root {
+      --doc: light-dark(#1b6ef3, #7cacf8);
+      --silent: light-dark(#137333, #81c995);
+      color-scheme: light dark;
+    }
+    .doc { fill: var(--doc); }
+    .silent { fill: var(--silent); }
+    .slash { stroke: var(--silent); stroke-width: 2.2; stroke-linecap: round; fill: none; }
+  </style>
+  <path class="doc" d="M10.4 4.2H6.6A2.4 2.4 0 0 0 4.2 6.6v10.8a2.4 2.4 0 0 0 2.4 2.4h3.8a1.1 1.1 0 0 0 1.1-1.1V5.3a1.1 1.1 0 0 0-1.1-1.1Z" />
+  <path class="silent" d="M13.6 6.8a1.1 1.1 0 0 0-1.1 1.1v8.2a1.1 1.1 0 0 0 1.1 1.1c2.9 0 5.2-2.3 5.2-5.2s-2.3-5.2-5.2-5.2Z" />
+  <path class="slash" d="M14.2 4.6 19.6 19.4" />
+</svg>

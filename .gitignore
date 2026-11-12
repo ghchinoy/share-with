@@ -10,9 +10,11 @@ dist/
 *.out
 coverage.txt
 
-# Diagrams (per workspace rules)
+# Diagrams (per workspace rules; allow site vector icons and logos)
 *.png
 *.svg
+!site/public/**/*.svg
+!site/src/assets/**/*.svg
 
 # Local secrets and credentials
 *.pem

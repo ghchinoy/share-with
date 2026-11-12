@@ -90,6 +90,17 @@ func TestAgentPluginAndPortableURLHygiene(t *testing.T) {
 		}
 	})
 
+	t.Run("site_vector_assets_present", func(t *testing.T) {
+		for _, asset := range []string{
+			filepath.Join("site", "public", "favicon.svg"),
+			filepath.Join("site", "src", "assets", "logo.svg"),
+		} {
+			if _, err := os.Stat(asset); err != nil {
+				t.Errorf("required site asset %q missing: %v", asset, err)
+			}
+		}
+	})
+
 	t.Run("marketplace_manifest_and_skill_frontmatter", func(t *testing.T) {
 		raw, err := os.ReadFile(filepath.Join(".claude-plugin", "marketplace.json"))
 		if err != nil {
