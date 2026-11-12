@@ -8,7 +8,7 @@ import (
 var (
 	// Version is the semantic version of share-with, updated by release-please
 	// and overridden on tagged builds via GoReleaser -ldflags.
-	Version = "0.1.0" // x-release-please-version
+	Version = "0.2.0" // x-release-please-version
 
 	// Commit is the short VCS commit hash injected at build time.
 	Commit = "dev"
