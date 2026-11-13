@@ -32,6 +32,10 @@ share-with --version
 After installing the `share-with` binary on your `PATH`, install the bundled plugin so Claude Code, Antigravity, Codex, Gemini CLI, or OpenCode can run silent grants and permission audits on your behalf. See the [Agent Plugin & Skill Guide](../agent-plugin/).
 :::
 
+:::note[Sister CLI: drivectl]
+Need to search Google Drive, upload files, convert Markdown into formatted Google Docs, read or write Google Sheets A1 ranges, or run a Google Workspace MCP server? Use the sister CLI [`drivectl`](https://github.com/ghchinoy/drivectl) ([documentation](https://ghchinoy.github.io/drivectl/)). Use `share-with` whenever you need silent-only permission grants (`sendNotificationEmail=false` enforced on the wire) and no-downgrade collaborator protection.
+:::
+
 ## 2. Authenticate Once with Google Drive Scope
 
 Enable the Google Drive API on a Google Cloud project you control and log in with Application Default Credentials (ADC) **including the `drive` scope**. A bare `gcloud auth application-default login` without `--scopes` grants only `cloud-platform` and will fail with `HTTP 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT`:

@@ -5,6 +5,9 @@
 [![Go 1.26+](https://img.shields.io/badge/Go-1.26%2B-00ADD8?logo=go)](go.mod)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
+> [!NOTE]
+> Need to search Google Drive, upload files, convert Markdown to Google Docs, read or update Google Sheets ranges, or run a Google Workspace MCP server? Use the sister CLI [`drivectl`](https://github.com/ghchinoy/drivectl) ([documentation](https://ghchinoy.github.io/drivectl/)). Use `share-with` whenever you need silent-only permission grants (`sendNotificationEmail=false` enforced on the wire) and no-downgrade collaborator protection.
+
 ## Table of Contents
 
 - [Installation](#installation)
