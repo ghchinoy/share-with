@@ -57,7 +57,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.1.6
+          version: v2.12.2
 
       - name: Run unit & contract tests with race detector
         run: go test -p 2 -v -race ./...
